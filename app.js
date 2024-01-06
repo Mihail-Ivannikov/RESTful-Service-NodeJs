@@ -1,3 +1,4 @@
+"use strict";
 const express = require("express");
 const userRouter = require("./routes/users");
 const quizRouter = require("./routes/quiz");

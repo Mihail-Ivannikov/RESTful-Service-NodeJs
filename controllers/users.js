@@ -1,3 +1,4 @@
+"use strict";
 const db = require("../dataBase/connection");
 
 exports.getUsers = async (req, res, next) => {

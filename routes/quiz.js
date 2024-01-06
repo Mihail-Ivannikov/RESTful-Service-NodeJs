@@ -1,3 +1,4 @@
+"use strict";
 const express = require("express");
 const quizController = require("../controllers/quiz");
 const router = express.Router();
