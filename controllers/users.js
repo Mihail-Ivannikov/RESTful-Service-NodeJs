@@ -1,100 +1,108 @@
 const db = require("../dataBase/connection");
 
-exports.getUsers = (req, res) => {
-  db.query("SELECT * FROM user", (err, results) => {
-    if (err) return next("error");
+exports.getUsers = async (req, res, next) => {
+  try {
+    const [results] = await db.promise().query("SELECT * FROM user");
     res.json(results);
-  });
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.getById = (req, res) => {
+exports.getById = async (req, res, next) => {
   const { id } = req.params;
-  db.query("SELECT * FROM user WHERE id = ?", [id], (err, results) => {
-    if (err) return next("error");
+  try {
+    const [results] = await db
+      .promise()
+      .query("SELECT * FROM user WHERE id = ?", [id]);
     res.json(results[0]);
-  });
+  } catch (err) {
+    next(err);
+  }
 };
-exports.addUser = (req, res, next) => {
-  if (!req.body) return next("No form data found");
 
-  const user = {
-    id: req.body.id,
-    password: req.body.password,
-    name: req.body.name,
-    surname: req.body.surname,
-    nickname: req.body.nickname,
-    email: req.body.email,
-    picture: req.body.picture,
-    Role_id: req.body.Role_id,
-  };
+exports.addUser = async (req, res, next) => {
+  try {
+    if (!req.body) throw "No form data found";
 
-  db.query("SELECT * FROM role WHERE id = ?", [user.Role_id], (err, result) => {
-    if (err) return next("error");
+    const user = {
+      id: req.body.id,
+      password: req.body.password,
+      name: req.body.name,
+      surname: req.body.surname,
+      nickname: req.body.nickname,
+      email: req.body.email,
+      picture: req.body.picture,
+      Role_id: req.body.Role_id,
+    };
 
-    if (result.length === 0) {
-      return next("Invalid Role_id.");
+    const [roleResult] = await db
+      .promise()
+      .query("SELECT * FROM role WHERE id = ?", [user.Role_id]);
+
+    if (roleResult.length === 0) {
+      throw "Invalid Role_id.";
     }
 
-    db.query("INSERT INTO user SET ?", user, (err, result) => {
-      if (err) return next("error");
+    await db.promise().query("INSERT INTO user SET ?", user);
 
-      res.status(200).json({
-        status: "success",
-        message: "User added",
-      });
+    res.status(200).json({
+      status: "success",
+      message: "User added",
     });
-  });
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.updateUser = (req, res, next) => {
+exports.updateUser = async (req, res, next) => {
   const userId = req.params.id;
 
-  if (!req.body) return next("No form data found");
+  try {
+    if (!req.body) throw "No form data found";
 
-  const updatedUser = {
-    password: req.body.password,
-    name: req.body.name,
-    surname: req.body.surname,
-    nickname: req.body.nickname,
-    email: req.body.email,
-    picture: req.body.picture,
-    Role_id: req.body.Role_id,
-  };
+    const updatedUser = {
+      password: req.body.password,
+      name: req.body.name,
+      surname: req.body.surname,
+      nickname: req.body.nickname,
+      email: req.body.email,
+      picture: req.body.picture,
+      Role_id: req.body.Role_id,
+    };
 
-  db.query(
-    "SELECT * FROM role WHERE id = ?",
-    [updatedUser.Role_id],
-    (err, result) => {
-      if (err) return next("error");
+    const [roleResult] = await db
+      .promise()
+      .query("SELECT * FROM role WHERE id = ?", [updatedUser.Role_id]);
 
-      if (result.length === 0) {
-        return next("Invalid Role_id.");
-      }
-
-      db.query(
-        "UPDATE user SET ? WHERE id = ?",
-        [updatedUser, userId],
-        (err, result) => {
-          if (err) return next("error");
-
-          if (result.affectedRows === 0) {
-            return next("User not found.");
-          }
-
-          res.status(200).json({
-            status: "success",
-            message: "User updated",
-          });
-        }
-      );
+    if (roleResult.length === 0) {
+      throw "Invalid Role_id.";
     }
-  );
+
+    const [result] = await db
+      .promise()
+      .query("UPDATE user SET ? WHERE id = ?", [updatedUser, userId]);
+
+    if (result.affectedRows === 0) {
+      throw "User not found.";
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "User updated",
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
-exports.delete = (req, res) => {
+exports.delete = async (req, res, next) => {
   const { id } = req.params;
-  db.query("DELETE FROM user WHERE id = ?", [id], (err) => {
-    if (err) return next("error");
+
+  try {
+    await db.promise().query("DELETE FROM user WHERE id = ?", [id]);
     res.json({ message: "User deleted successfully" });
-  });
+  } catch (err) {
+    next(err);
+  }
 };

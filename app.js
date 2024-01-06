@@ -13,6 +13,6 @@ app.all("*", (req, res, next) => {
   next(`The URL does not exists`);
 });
 
-app.listen(PORT, () => {
+app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
